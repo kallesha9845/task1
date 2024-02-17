@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: spring-crud-pm-app
+  name: spring-crud-pm-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-crud-pm-app
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: spring-crud-pm-app
+    spec:
+      containers:
+      - image: docker.io/spring-crud-pm-app:1.0.0
+        name: spring-crud-pm-app
+        resources: {}
+status: {}
