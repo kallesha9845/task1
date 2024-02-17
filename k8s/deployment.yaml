@@ -15,8 +15,12 @@ spec:
       labels:
         app: spring-crud-pm-app
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
-      - image: docker.io/csnitsh/spring-crud-pm-app:1.0.0
+      - image: docker.io/csnitsh/spring-crud-pm-app:1.0.15
         name: spring-crud-pm-app
+        ports:
+        - containerPort: 8085
         resources: {}
 status: {}

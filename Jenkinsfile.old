@@ -1,0 +1,102 @@
+pipeline {
+    agent any
+    environment { 
+        application = 'spring-crud-pm-app'
+        namespace = 'csnitsh'
+        registry = 'docker.io'
+        version = '1.0.6'
+    }
+    stages {
+        // stage('Update MySQL Password') {
+        //     steps {
+        //         echo 'Updating MySQL Password..'
+        //         withCredentials([string(credentialsId: 'mysql-root-password', variable: 'MYSQL_ROOT_PASSWORD')]) {
+        //             sh """
+        //             sed "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/g" src/main/resources/application.properties > src/main/resources/application.properties.tmp
+        //             mv src/main/resources/application.properties.tmp src/main/resources/application.properties
+        //             """
+        //         }
+        //     }
+        // }
+        stage('Build') {
+            agent {
+                kubernetes {
+                    label 'kaniko'
+                    defaultContainer 'jnlp'
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    metadata:
+                      labels:
+                        jenkins: slave
+                    spec:
+                      containers:
+                      - name: kaniko
+                        image: gcr.io/kaniko-project/executor:latest
+                        command:
+                        - /busybox/cat
+                        tty: true
+                    """
+                }
+            }
+            steps {
+                echo 'Building..'
+                // echo '-Dmaven.test.skip=true to skip tests'
+                sh "/kaniko/executor --dockerfile=Dockerfile --destination=${registry}/${namespace}/${application}:${version} --context=dir://${PWD}"
+            }
+        }
+        stage('Deploy') {
+            agent {
+                kubernetes {
+                    label 'kubectl'
+                    defaultContainer 'jnlp'
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    metadata:
+                    labels:
+                        jenkins: slave
+                    spec:
+                    containers:
+                    - name: kubectl
+                        image: bitnami/kubectl:latest
+                        command:
+                        - /busybox/cat
+                        tty: true
+                        volumeMounts:
+                        - name: kubeconfig-volume
+                        mountPath: /root/.kube/config
+                        subPath: config
+                    volumes:
+                    - name: kubeconfig-volume
+                        secret:
+                        secretName: kubeconfig
+                    """
+                }
+            }
+            steps {
+                echo 'Deploying....'
+                sh "kubectl apply -f k8s/deployment.yaml"
+            }
+        }
+        stage('Update Deployment'){
+            steps {
+                echo 'Updating the deployment..'
+                sh "kubectl set image deployment/${application} ${application}=${registry}/${namespace}/${application}:${version}"
+            }
+        }
+        stage('Smoke Test') {
+            steps {
+                echo 'Smoke Testing..'
+            }
+        }
+
+        stage('Git Tag'){
+            steps {
+                echo 'Tagging the commit..'
+                sh "git tag -a ${version} -m 'Tagging the commit'"
+                sh "git push origin ${version}"
+            }
+        }
+    }
+}
