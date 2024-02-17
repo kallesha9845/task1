@@ -18,21 +18,29 @@ pipeline {
             }
         }
         stage('Build') {
+            agent {
+                // Use the Kaniko executor image as the agent
+                docker {
+                    image 'gcr.io/kaniko-project/executor:latest'
+                    // args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
             steps {
                 echo 'Building..'
-                echo '-Dmaven.test.skip=true to skip tests'
-                sh "docker build -f Dockerfile . --platform linux/amd64 -t $registry/$application:$version"
-            }
-        }
-        stage('Push') {
-            steps {
-                echo "Pushing $registry/$application:$version to registry with credentials.."
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh "docker login -u $DOCKER_USER -p $DOCKER_PASS $registry"
-                    sh "docker push $registry/$application:$version"
+                // echo '-Dmaven.test.skip=true to skip tests'
+                script {
+                    // Define the Dockerfile path, relative to the workspace
+                    def dockerfilePath = 'Dockerfile'
+                    // Define the destination of the image
+                    def destination = "$registry/$application:$version"
+                    // Run the Kaniko executor to build and push the Docker image
+                    sh """
+                    /kaniko/executor --dockerfile=${dockerfilePath} --destination=${destination} --context=dir://$(pwd)
+                    """
                 }
             }
         }
+
         stage('Deploy') {
             agent {
                 docker {
