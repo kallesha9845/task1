@@ -16,7 +16,7 @@ RUN ./mvnw dependency:resolve
 COPY src ./src
 
 # Build the project and package the jar to the local repository
-RUN ./mvnw clean package -Dmaven.test.skip=true
+RUN ./mvnw clean package 
 
 # Stage 2: Run with JRE
 # Use Eclipse Temurin image with JRE 17

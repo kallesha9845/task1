@@ -6,14 +6,21 @@ pipeline {
         version = '1.0.0'
     }
     stages {
-        stage('Test') {
+        stage('Update MySQL Password') {
             steps {
-                echo 'Testing..'
+                echo 'Updating MySQL Password..'
+                withCredentials([string(credentialsId: 'mysql-root-password', variable: 'MYSQL_ROOT_PASSWORD')]) {
+                    sh """
+                    sed "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/g" src/main/resources/application.properties > src/main/resources/application.properties.tmp
+                    mv src/main/resources/application.properties.tmp src/main/resources/application.properties
+                    """
+                }
             }
         }
         stage('Build') {
             steps {
                 echo 'Building..'
+                echo '-Dmaven.test.skip=true to skip tests'
                 sh "docker build -f Dockerfile . --platform linux/amd64 -t $registry/$application:$version"
             }
         }
