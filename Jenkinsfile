@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment { 
         application = 'spring-crud-pm-app'
+        namespace = 'csnitsh'
         registry = 'docker.io'
         version = '1.0.0'
     }
@@ -32,7 +33,7 @@ pipeline {
                     // Define the Dockerfile path, relative to the workspace
                     def dockerfilePath = 'Dockerfile'
                     // Define the destination of the image
-                    def destination = "$registry/$application:$version"
+                    def destination = "$registry/$namespace/$application:$version"
                     // Run the Kaniko executor to build and push the Docker image
                     sh """
                     /kaniko/executor --dockerfile=${dockerfilePath} --destination=${destination} --context=dir://$(pwd)
