@@ -16,7 +16,7 @@ spec:
         app: spring-crud-pm-app
     spec:
       containers:
-      - image: docker.io/spring-crud-pm-app:1.0.0
+      - image: docker.io/csnitsh/spring-crud-pm-app:1.0.0
         name: spring-crud-pm-app
         resources: {}
 status: {}

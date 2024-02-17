@@ -7,17 +7,17 @@ pipeline {
         version = '1.0.0'
     }
     stages {
-        stage('Update MySQL Password') {
-            steps {
-                echo 'Updating MySQL Password..'
-                withCredentials([string(credentialsId: 'mysql-root-password', variable: 'MYSQL_ROOT_PASSWORD')]) {
-                    sh """
-                    sed "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/g" src/main/resources/application.properties > src/main/resources/application.properties.tmp
-                    mv src/main/resources/application.properties.tmp src/main/resources/application.properties
-                    """
-                }
-            }
-        }
+        // stage('Update MySQL Password') {
+        //     steps {
+        //         echo 'Updating MySQL Password..'
+        //         withCredentials([string(credentialsId: 'mysql-root-password', variable: 'MYSQL_ROOT_PASSWORD')]) {
+        //             sh """
+        //             sed "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/g" src/main/resources/application.properties > src/main/resources/application.properties.tmp
+        //             mv src/main/resources/application.properties.tmp src/main/resources/application.properties
+        //             """
+        //         }
+        //     }
+        // }
         stage('Build') {
             agent {
                 // Use the Kaniko executor image as the agent

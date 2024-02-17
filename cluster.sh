@@ -12,18 +12,18 @@ kubectl wait --namespace ingress-nginx \
 	--selector=app.kubernetes.io/component=controller \
 	--timeout=90s
 
-helm repo add jenkinsci https://charts.jenkins.io/
-helm repo update
-helm upgrade --install jenkins jenkinsci/jenkins --set controller.ingress.enabled=true
-
-
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-helm install mysql bitnami/mysql --set auth.database=bugtracker
+helm install mysql bitnami/mysql --values values/mysql.yaml
 MYSQL_ROOT_PASSWORD=$(kubectl get secret --namespace default mysql -o jsonpath="{.data.mysql-root-password}" | base64 -d)
 
-sed "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/g" src/main/resources/application.properties > src/main/resources/application.properties.tmp
-mv src/main/resources/application.properties.tmp src/main/resources/application.properties
+
+helm repo add jenkinsci https://charts.jenkins.io/
+helm repo update
+helm upgrade --install jenkins jenkinsci/jenkins --values values/jenkns.yaml
+
+# sed "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/g" src/main/resources/application.properties > src/main/resources/application.properties.tmp
+# mv src/main/resources/application.properties.tmp src/main/resources/application.properties
 
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
