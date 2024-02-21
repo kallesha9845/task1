@@ -9,7 +9,6 @@ spec:
   selector:
     matchLabels:
       app: spring-crud-pm-app
-  strategy: {}
   template:
     metadata:
       labels:
